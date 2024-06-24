@@ -1,7 +1,7 @@
 <?php  
 //Connect to database
 require 'connectDB.php';
-date_default_timezone_set('Asia/Damascus');
+date_default_timezone_set('Europe/Rome');
 $d = date("Y-m-d");
 $t = date("H:i:sa");
 
@@ -52,7 +52,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                     mysqli_stmt_execute($result);
                                     $resultl = mysqli_stmt_get_result($result);
                                     //*****************************************************
-                                    //Login
+                                    //Entrata
                                     if (!$row = mysqli_fetch_assoc($resultl)){
 
                                         $sql = "INSERT INTO users_logs (username, serialnumber, card_uid, device_uid, device_dep, checkindate, timein, timeout) VALUES (? ,?, ?, ?, ?, ?, ?, ?)";
@@ -66,12 +66,12 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                             mysqli_stmt_bind_param($result, "sdssssss", $Uname, $Number, $card_uid, $device_uid, $device_dep, $d, $t, $timeout);
                                             mysqli_stmt_execute($result);
 
-                                            echo "login".$Uname;
+                                            echo "Entrata ".$Uname;
                                             exit();
                                         }
                                     }
                                     //*****************************************************
-                                    //Logout
+                                    //Uscita
                                     else{
                                         $sql="UPDATE users_logs SET timeout=?, card_out=1 WHERE card_uid=? AND checkindate=? AND card_out=0";
                                         $result = mysqli_stmt_init($conn);
@@ -83,7 +83,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                             mysqli_stmt_bind_param($result, "sss", $t, $card_uid, $d);
                                             mysqli_stmt_execute($result);
 
-                                            echo "logout".$Uname;
+                                            echo "Uscita ".$Uname;
                                             exit();
                                         }
                                     }
@@ -95,12 +95,12 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                             }
                         }
                         else if ($row['add_card'] == 0){
-                            echo "Not registerd!";
+                            echo "Alunno non registrato!";
                             exit();
                         }
                     }
                     else{
-                        echo "Not found!";
+                        echo "Card non registrata!";
                         exit();
                     }
                 }
@@ -149,7 +149,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                         mysqli_stmt_bind_param($result, "s", $card_uid);
                                         mysqli_stmt_execute($result);
 
-                                        echo "available";
+                                        echo "Card gia registrata";
                                         exit();
                                     }
                                 }
@@ -191,7 +191,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                 mysqli_stmt_bind_param($result, "sss", $card_uid, $device_uid, $device_dep );
                                 mysqli_stmt_execute($result);
 
-                                echo "succesful";
+                                echo "Registrazione card OK";
                                 exit();
                             }
                         }
