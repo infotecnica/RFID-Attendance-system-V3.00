@@ -11,22 +11,21 @@
 #include <SPI.h>
 #include <MFRC522.h>
 //NodeMCU--------------------------
-#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecureBearSSL.h>
-
-// Replace with your network credentials
-const char* ssid = "SSID";
-const char* password = "Password";
-const char* device_token  = "Device Token";
 //************************************************************************
 #define SS_PIN  D8  //D8
 #define RST_PIN D3  //D3
 //************************************************************************
 MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance.
 //************************************************************************
-String URL = "https://YourComputerIP/rfidattendance/getdata.php"; //computer IP or the server domain
+/* Set these to your desired credentials. */
+const char *ssid = "SSID";
+const char *password = "password";
+const char* device_token  = "Device Token";
+//************************************************************************
+String URL = "https://<domain>/getdata.php"; //computer IP or the server domain
 String getData, Link;
 String OldCardID = "";
 unsigned long previousMillis = 0;
@@ -39,6 +38,7 @@ void setup() {
   //---------------------------------------------
   connectToWiFi();
 }
+//************************************************************************
 void loop() {
   //check if there's a connection to Wi-Fi or not
   if(!WiFi.isConnected()){
@@ -71,11 +71,11 @@ void loop() {
     OldCardID = CardID;
   }
   //---------------------------------------------
-  Serial.println(CardID);
+//  Serial.println(CardID);
   SendCardID(CardID);
   delay(1000);
-}  
-  //************send the Card UID to the website*************
+}
+//************send the Card UID to the website*************
 void SendCardID( String Card_uid ){
   Serial.println("Sending the Card ID");
   if(WiFi.isConnected()){
@@ -84,37 +84,44 @@ void SendCardID( String Card_uid ){
 
     // Ignore SSL certificate validation
     client->setInsecure();
-    HTTPClient https;
+    
+    HTTPClient https;    //Declare object of class HTTPClient
     //GET Data
     getData = "?card_uid=" + String(Card_uid) + "&device_token=" + String(device_token); // Add the Card ID to the GET array in order to send it
     //GET methode
     Link = URL + getData;
-    //Initializing an HTTPS communication using the secure client
-    if (https.begin(*client, Link)) { // HTTPS
-      // start connection and send HTTP header
-      int httpCode = https.GET();
-      // httpCode will be negative on error
-      Serial.println(httpCode); 
-      if (httpCode > 0) {
-        // HTTP header has been send and Server response header has been handled
-        Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
-        // file found at server
-        if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-          String payload = https.getString();
-          Serial.println(payload);
-      }
-        }
-    } else {
-        Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
-      } 
+    https.begin(*client, Link); //initiate HTTP request   //Specify content-type header
+    
+    int httpCode = https.GET();   //Send the request
+    String payload = https.getString();    //Get the response payload
 
-      https.end();
-    } else {
-      Serial.printf("[HTTPS] Unable to connect\n");
+//    Serial.println(Link);   //Print HTTP return code
+    Serial.println(httpCode);   //Print HTTP return code
+    Serial.println(Card_uid);     //Print Card ID
+    Serial.println(payload);    //Print request response payload
+    //Serial.println(Link);   //Print link for test
+
+    if (httpCode == 200) {
+      if (payload.substring(0, 5) == "login") {
+        String user_name = payload.substring(5);
+        Serial.println(user_name);
+
+      }
+      else if (payload.substring(0, 6) == "logout") {
+        String user_name = payload.substring(6);
+        Serial.println(user_name);
+        
+      }
+      else if (payload == "succesful") {
+
+      }
+      else if (payload == "available") {
+
+      }
+      delay(100);
+      https.end();  //Close connection
     }
   }
-  
-  
 }
 //********************connect to the WiFi******************
 void connectToWiFi(){
@@ -136,5 +143,5 @@ void connectToWiFi(){
     Serial.println(WiFi.localIP());  //IP address assigned to your ESP
     
     delay(1000);
-    }
+}
 //=======================================================================
