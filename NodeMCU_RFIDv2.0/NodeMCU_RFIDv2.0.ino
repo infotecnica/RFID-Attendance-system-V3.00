@@ -10,6 +10,16 @@
 //RFID-----------------------------
 #include <SPI.h>
 #include <MFRC522.h>
+
+//LCD------------------------------
+#include <Wire.h> -----------------
+#include <hd44780.h>                       // main hd44780 header
+#include <hd44780ioClass/hd44780_I2Cexp.h> // i2c expander i/o class header
+hd44780_I2Cexp lcd; // declare lcd object: auto locate & auto config expander chip
+// LCD geometry
+const int LCD_COLS = 16;
+const int LCD_ROWS = 2;
+
 //NodeMCU--------------------------
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -31,7 +41,8 @@ String OldCardID = "";
 unsigned long previousMillis = 0;
 //************************************************************************
 void setup() {
-  delay(1000);
+  lcd.begin(LCD_COLS, LCD_ROWS);
+  lcd.clear();
   Serial.begin(115200);
   SPI.begin();  // Init SPI bus
   mfrc522.PCD_Init(); // Init MFRC522 card
@@ -98,18 +109,43 @@ void SendCardID( String Card_uid ){
 //    Serial.println(Link);   //Print HTTP return code
     Serial.println(httpCode);   //Print HTTP return code
     Serial.println(Card_uid);     //Print Card ID
+    lcd.clear();
+    lcd.setCursor(0, 0);               // Set the cursor to the first column and first row
+    lcd.print(payload); 
+    delay(3000);
     Serial.println(payload);    //Print request response payload
     //Serial.println(Link);   //Print link for test
-
     if (httpCode == 200) {
       if (payload.substring(0, 5) == "login") {
         String user_name = payload.substring(5);
         Serial.println(user_name);
+        lcd.clear();
+        lcd.setCursor(0, 0);               // Set the cursor to the first column and first row
+        lcd.print("Ingresso OK per"); 
+        lcd.setCursor(0, 1);               // Set the cursor to the first column and first row
+        lcd.print(user_name); 
+        delay(5000);
+        lcd.clear();
+        lcd.setCursor(0, 0);               // Set the cursor to the first column and first row
+        lcd.print("In attesa di una");
+        lcd.setCursor(0, 1);               // Set the cursor to the first column and first row
+        lcd.print("nuova scansione"); 
 
       }
       else if (payload.substring(0, 6) == "logout") {
         String user_name = payload.substring(6);
         Serial.println(user_name);
+        lcd.clear();
+        lcd.setCursor(0, 0);               // Set the cursor to the first column and first row
+        lcd.print("Uscita OK per"); 
+        lcd.setCursor(0, 1);               // Set the cursor to the first column and first row
+        lcd.print(user_name); 
+        delay(5000);
+        lcd.clear();
+        lcd.setCursor(0, 0);               // Set the cursor to the first column and first row
+        lcd.print("In attesa di una"); 
+        lcd.setCursor(0, 1);               // Set the cursor to the first column and first row
+        lcd.print("nuova scansione"); 
         
       }
       else if (payload == "succesful") {
@@ -141,7 +177,13 @@ void connectToWiFi(){
   
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());  //IP address assigned to your ESP
-    
+    lcd.setCursor(0, 0);               // Set the cursor to the first column and first row
+    lcd.print("    Connesso   ");
+    delay(6000);
+    lcd.setCursor(0, 0);               // Set the cursor to the first column and first row
+    lcd.print("   Pronto per   "); 
+    lcd.setCursor(0, 1);               // Set the cursor to the first column and first row
+    lcd.print("nuova scansione");
     delay(1000);
 }
 //=======================================================================

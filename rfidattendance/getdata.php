@@ -66,7 +66,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                             mysqli_stmt_bind_param($result, "sdssssss", $Uname, $Number, $card_uid, $device_uid, $device_dep, $d, $t, $timeout);
                                             mysqli_stmt_execute($result);
 
-                                            echo "Entrata ".$Uname;
+                                            echo "login".$Uname;
                                             exit();
                                         }
                                     }
@@ -83,7 +83,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                             mysqli_stmt_bind_param($result, "sss", $t, $card_uid, $d);
                                             mysqli_stmt_execute($result);
 
-                                            echo "Uscita ".$Uname;
+                                            echo "logout ".$Uname;
                                             exit();
                                         }
                                     }
