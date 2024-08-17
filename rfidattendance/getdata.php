@@ -4,7 +4,22 @@ require 'connectDB.php';
 date_default_timezone_set('Europe/Rome');
 $d = date("Y-m-d");
 $t = date("H:i:sa");
-
+ini_set('display_errors','On');
+error_reporting(E_ALL);
+function getLastValidRead($conn, $card_uid) {
+    $sql = "SELECT MAX(timein) as last_read FROM users_logs WHERE card_uid = ? AND checkindate = CURDATE()";
+    $result = mysqli_stmt_init($conn);
+    if (!mysqli_stmt_prepare($result, $sql)) {
+        return false;
+    }
+    mysqli_stmt_bind_param($result, "s", $card_uid);
+    mysqli_stmt_execute($result);
+    $resultl = mysqli_stmt_get_result($result);
+    if ($row = mysqli_fetch_assoc($resultl)) {
+        return $row['last_read'];
+    }
+    return false;
+}
 if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
     
     $card_uid = $_GET['card_uid'];
@@ -41,6 +56,21 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                         if ($row['device_uid'] == $device_uid || $row['device_uid'] == 0){
                                 $Uname = $row['username'];
                                 $Number = $row['serialnumber'];
+                                $lastRead = getLastValidRead($conn, $card_uid);
+                                $currentTime = new DateTime();
+
+                                if ($lastRead) {
+                                    $lastReadTime = new DateTime($lastRead);
+                                    $timeDifference = $currentTime->getTimestamp() - $lastReadTime->getTimestamp();
+                                    
+                                    if ($timeDifference < 1200) { // 1200 secondi = 20 minuti
+                                        echo "Lettura gia effettuata";
+                                        exit();
+                                    }
+                                }
+
+
+
                                 $sql = "SELECT * FROM users_logs WHERE card_uid=? AND checkindate=? AND card_out=0";
                                 $result = mysqli_stmt_init($conn);
                                 if (!mysqli_stmt_prepare($result, $sql)) {
@@ -90,7 +120,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                 }
                             }
                             else {
-                                echo "Not Allowed!";
+                                echo "Non consentito!";
                                 exit();
                             }
                         }
